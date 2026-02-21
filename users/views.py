@@ -60,13 +60,21 @@ def register_user(request):
             experience_level=data.get("experience_level", 1),
         )
 
-        send_mail(
-            subject="Welcome to EverydayLife!",
-            message=f"Hi {user.first_name},\n\nWelcome aboard!",
-            from_email="noreply@yourapp.com",
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        import threading
+        def send_welcome_email(first_name, user_email):
+            try:
+                send_mail(
+                    subject="Welcome to EverydayLife!",
+                    message=f"Hi {first_name},\n\nWelcome aboard!",
+                    from_email="noreply@yourapp.com",
+                    recipient_list=[user_email],
+                    fail_silently=True,
+                )
+            except:
+                pass
+
+        # Send email in the background without blocking the DB or response! 🚀
+        threading.Thread(target=send_welcome_email, args=(user.first_name, user.email)).start()
 
         return Response({"status": "Account Created!", "user_id": user.id})
     except Exception as e:

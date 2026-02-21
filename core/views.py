@@ -50,7 +50,7 @@ load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 
 gemini_client = None  # Will be set below if API key is present
-GEMINI_MODEL = "gemini-3.0-flash"  # Primary model
+GEMINI_MODEL = "gemini-2.0-flash"  # Primary model
 
 if api_key:
     try:
