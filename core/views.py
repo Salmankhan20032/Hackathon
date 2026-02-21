@@ -50,7 +50,7 @@ load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 
 gemini_client = None  # Will be set below if API key is present
-GEMINI_MODEL = "gemini-2.0-flash"  # Primary model
+GEMINI_MODEL = "gemini-3.0-flash"  # Primary model
 
 if api_key:
     try:
@@ -209,7 +209,7 @@ def generate_career_plan(request):
     """
 
     try:
-        text_response = ai_generate(prompt).strip()
+        text_response = ai_generate(prompt + get_lang_instruction(request)).strip()
 
         # Clean response text in case AI adds markdown
         if "```json" in text_response:
@@ -267,7 +267,7 @@ def generate_internships(request):
     Do NOT include Markdown wrappers like ```json, just the pure array [ ... ].
     """
     try:
-        text_response = ai_generate(prompt)
+        text_response = ai_generate(prompt + get_lang_instruction(request))
         match = re.search(r"\[.*\]", text_response, re.DOTALL)
         if match:
             internships_data = json.loads(match.group())
@@ -379,7 +379,7 @@ def grade_internship(request, internship_id):
     """
 
     try:
-        ai_resp = ai_generate(prompt)
+        ai_resp = ai_generate(prompt + get_lang_instruction(request))
         score = 80
         match = re.search(r"SCORE:\s*(\d+)", ai_resp)
         if match:
@@ -446,7 +446,7 @@ def generate_quiz(request, internship_id):
             """
 
             try:
-                text_response = ai_generate(prompt)
+                text_response = ai_generate(prompt + get_lang_instruction(request))
                 match = re.search(r"\[.*\]", text_response, re.DOTALL)
                 if match:
                     questions = json.loads(match.group())
@@ -644,7 +644,7 @@ def scrape_jobs(request):
         Do NOT include Markdown wrappers like ```json. Just the pure array [ ... ].
         """
         try:
-            text_response = ai_generate(prompt).strip()
+            text_response = ai_generate(prompt + get_lang_instruction(request)).strip()
 
             # Clean response text in case AI adds markdown
             if "```json" in text_response:
@@ -733,7 +733,7 @@ def travel_planner(request):
     """
 
     try:
-        ai_response = ai_generate(prompt)
+        ai_response = ai_generate(prompt + get_lang_instruction(request))
         match = re.search(r"\[.*\]", ai_response, re.DOTALL)
         plan_json = match.group() if match else "[]"
     except:
@@ -796,7 +796,7 @@ def local_discounts_and_events(request):
     """
 
     try:
-        response = ai_generate(prompt)
+        response = ai_generate(prompt + get_lang_instruction(request))
         cleaned = response.strip()
         if "```json" in cleaned:
             cleaned = cleaned.split("```json")[1].split("```")[0].strip()
