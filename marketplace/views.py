@@ -84,17 +84,17 @@ def product_chat(request, product_id):
     
     if request.method == 'POST':
         message_text = request.data.get('message')
-        # Logic: If I am the seller, sending to buyer. If I am buyer, sending to seller.
-        receiver = product.seller if request.user != product.seller else None
+        receiver_id = request.data.get('receiver_id')
+        
+        if receiver_id:
+            from users.models import CustomUser
+            receiver = CustomUser.objects.get(id=receiver_id)
+        else:
+            # Fallback for buyer sending to seller
+            receiver = product.seller if request.user != product.seller else None
         
         if not receiver:
-             # If seller is replying, we need to know WHICH buyer they are replying to
-             buyer_id = request.data.get('buyer_id')
-             if buyer_id:
-                 from users.models import CustomUser
-                 receiver = CustomUser.objects.get(id=buyer_id)
-             else:
-                 return Response({"error": "Buyer ID required for seller reply"}, status=400)
+            return Response({"error": "Receiver ID required for seller reply"}, status=400)
              
         msg = ChatMessage.objects.create(
             sender=request.user,
@@ -105,10 +105,18 @@ def product_chat(request, product_id):
         return Response(ChatMessageSerializer(msg).data)
         
     elif request.method == 'GET':
+        other_user_id = request.query_params.get('other_user_id')
+        
         # Get all chats regarding this product where user is involved
         chats = ChatMessage.objects.filter(product=product).filter(
             models.Q(sender=request.user) | models.Q(receiver=request.user)
         )
+        
+        if other_user_id:
+            chats = chats.filter(
+                models.Q(sender_id=other_user_id) | models.Q(receiver_id=other_user_id)
+            )
+            
         return Response(ChatMessageSerializer(chats.order_by('timestamp'), many=True).data)
 
 @api_view(['GET'])
